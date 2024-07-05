@@ -6,17 +6,17 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ProjectReaderTest {
+class ClassesLoaderTest {
 
     @Test
     void projectScannerLoadClasses() throws Exception {
-        ProjectReader reader = new ProjectReader();
+        ClassesLoader reader = new ClassesLoader("ru.software.control");
 
-        List<Class<?>> classes = reader.classes("ru.software.control");
+        List<Class<?>> classes = reader.classes();
 
         assertThat(classes)
                 .isNotEmpty()
-                .hasSize(4);
+                .hasSize(5);
 
     }
 }
