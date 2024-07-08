@@ -11,35 +11,45 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ClassesLoader {
 
-    private final String packageName;
+    private final List<Class<?>> classes;
 
-    public List<Class<?>> classes() {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    public static ClassesLoader read(String packageName) {
+        ClassLoader classLoader = Thread.currentThread()
+                .getContextClassLoader();
 
-        return classLoader != null
-                ? loadedClassesFrom(classLoader)
-                : List.of();
+        return new ClassesLoader(loadedClassesFrom(packageName, classLoader));
+
     }
 
-    private List<Class<?>> loadedClassesFrom(ClassLoader classLoader) {
+    private static List<Class<?>> loadedClassesFrom(String packageName, ClassLoader loader) {
         String validPath = packageName.replace('.', '/');
-        return classLoader.resources(validPath)
+        return loader.resources(validPath)
                 .map(url -> new File(url.getFile()))
                 .flatMap(dir -> clasessFrom(dir, packageName).stream())
                 .toList();
     }
 
     @SneakyThrows
-    private List<Class<?>> clasessFrom(File directory, String packageName) {
+    private static List<Class<?>> clasessFrom(File directory, String packageName) {
         List<Class<?>> classes = new ArrayList<>();
-
+        packageName = packageName.concat(".");
         for (File file : Objects.requireNonNull(directory.listFiles())) {
             if (file.isDirectory()) {
-                classes.addAll(clasessFrom(file, packageName.concat(".").concat(file.getName())));
+                List<Class<?>> classesFromDir = clasessFrom(file, packageName.concat(file.getName()));
+                classes.addAll(classesFromDir);
             } else if (file.getName().endsWith(".class")) {
-                classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
+                String className = classNameWithoutExtension(file);
+                classes.add(Class.forName(packageName.concat(className)));
             }
         }
+        return classes;
+    }
+
+    private static String classNameWithoutExtension(File file) {
+        return file.getName().substring(0, file.getName().length() - 6);
+    }
+
+    public List<Class<?>> classes() {
         return classes;
     }
 }
