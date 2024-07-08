@@ -16,6 +16,6 @@ class ClassesLoaderTest {
 
         assertThat(classes)
                 .isNotEmpty()
-                .hasSize(5);
+                .hasSize(7);
     }
 }
